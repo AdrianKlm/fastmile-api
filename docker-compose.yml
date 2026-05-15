@@ -1,0 +1,13 @@
+services:
+  fastmile-api:
+    build: .
+    image: fastmile-api:latest
+    container_name: fastmile-api
+    ports:
+      - "8000:8000"
+    environment:
+      FASTMILE_ROUTER_HOST: ${FASTMILE_ROUTER_HOST:-192.168.0.1}
+      FASTMILE_ROUTER_TIMEOUT_SECONDS: ${FASTMILE_ROUTER_TIMEOUT_SECONDS:-30}
+      FASTMILE_CACHE_TTL_SECONDS: ${FASTMILE_CACHE_TTL_SECONDS:-15}
+      FASTMILE_CACHE_STALE_SECONDS: ${FASTMILE_CACHE_STALE_SECONDS:-5}
+    restart: unless-stopped
