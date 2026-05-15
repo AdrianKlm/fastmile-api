@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: fastmile-api
+Version: 0.1.0
+Summary: FastMile router status API and metrics exporter
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115
+Requires-Dist: uvicorn[standard]>=0.30
+Requires-Dist: requests>=2.32
+Requires-Dist: beautifulsoup4>=4.12
+Requires-Dist: pydantic-settings>=2.6
+Requires-Dist: prometheus-client>=0.20
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+
+# fastmile-api
+
+API and metrics exporter for Nokia FastMile / 4G05 routers.
+
+## MVP
+
+- poll `https://<router>/status.php`
+- cache one raw snapshot in memory
+- expose JSON for Home Assistant
+- expose Prometheus metrics for Grafana
+- ship as Docker Compose
+
+## Docs
+
+- `AGENTS.md` - working rules for future code generation
+- `docs/superpowers/specs/2026-05-15-fastmile-api-design.md`
+- `docs/superpowers/plans/2026-05-15-fastmile-api.md`
