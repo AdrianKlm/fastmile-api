@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
+from fastapi import HTTPException
+
 from fastmile_api.cache import SnapshotCache
 from fastmile_api.config import Settings
 from fastmile_api.metrics import render_metrics
 from fastmile_parser.router_client import RouterClient
 from fastmile_parser.scraper import parse_snapshot
+from requests import RequestException
 
 
 class FastMileService:
@@ -19,7 +22,10 @@ class FastMileService:
         return self.cache.get_or_refresh(self._load_snapshot)
 
     def _load_snapshot(self):
-        html = self.client.fetch_status_html()
+        try:
+            html = self.client.fetch_status_html()
+        except (RequestException, OSError) as exc:
+            raise HTTPException(status_code=503, detail="router unavailable") from exc
         return parse_snapshot(html)
 
     def health(self) -> dict:

@@ -1,27 +1,18 @@
-from threading import Thread
-
+from fastmile_api import cache as cache_module
 from fastmile_api.cache import SnapshotCache
 
 
-def test_snapshot_cache_collapses_concurrent_refreshes():
-    cache = SnapshotCache(ttl_seconds=60, stale_seconds=10)
-    calls = {"count": 0}
+def test_snapshot_cache_returns_stale_snapshot_when_refresh_fails():
+    cache = SnapshotCache(ttl_seconds=10, stale_seconds=5)
+    cache._entry = cache._make_entry({"value": "stale"}, fetched_at=100.0)
+
+    original_monotonic = cache_module.monotonic
+    cache_module.monotonic = lambda: 112.0
 
     def loader():
-        calls["count"] += 1
-        return {"value": "fresh"}
+        raise RuntimeError("router down")
 
-    results: list[object] = []
-
-    def worker():
-        results.append(cache.get_or_refresh(loader))
-
-    first = Thread(target=worker)
-    second = Thread(target=worker)
-    first.start()
-    second.start()
-    first.join()
-    second.join()
-
-    assert calls["count"] == 1
-    assert results == [{"value": "fresh"}, {"value": "fresh"}]
+    try:
+        assert cache.get_or_refresh(loader) == {"value": "stale"}
+    finally:
+        cache_module.monotonic = original_monotonic

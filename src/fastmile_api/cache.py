@@ -22,6 +22,9 @@ class SnapshotCache(Generic[T]):
         self._entry: CacheEntry[T] | None = None
         self._lock = Lock()
 
+    def _make_entry(self, snapshot: T, fetched_at: float | None = None) -> CacheEntry[T]:
+        return CacheEntry(snapshot=snapshot, fetched_at=monotonic() if fetched_at is None else fetched_at)
+
     def _is_fresh(self, entry: CacheEntry[T]) -> bool:
         return (monotonic() - entry.fetched_at) <= self.ttl_seconds
 
@@ -35,6 +38,12 @@ class SnapshotCache(Generic[T]):
             if entry is not None and self._is_fresh(entry):
                 return entry.snapshot
 
-            snapshot = loader()
-            self._entry = CacheEntry(snapshot=snapshot, fetched_at=monotonic())
+            try:
+                snapshot = loader()
+            except Exception:
+                if entry is not None and (monotonic() - entry.fetched_at) <= (self.ttl_seconds + self.stale_seconds):
+                    return entry.snapshot
+                raise
+
+            self._entry = self._make_entry(snapshot)
             return snapshot
