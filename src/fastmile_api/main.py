@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from fastapi.responses import PlainTextResponse
 
@@ -7,15 +9,24 @@ from fastmile_api.config import Settings
 from fastmile_api.service import FastMileService
 
 
-app = FastAPI(title="FastMileApi")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.service = FastMileService(get_settings())
+    yield
+
+
+app = FastAPI(title="FastMileApi", lifespan=lifespan)
 
 
 def get_settings() -> Settings:
     return Settings()
 
-
-def get_service(settings: Settings = Depends(get_settings)) -> FastMileService:
-    return FastMileService(settings)
+def get_service() -> FastMileService:
+    service = getattr(app.state, "service", None)
+    if service is None:
+        service = FastMileService(get_settings())
+        app.state.service = service
+    return service
 
 
 @app.get("/health")
