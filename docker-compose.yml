@@ -1,6 +1,8 @@
 services:
   fastmile-api:
-    build: .
+    build:
+      context: ..
+      dockerfile: fastmile-api/Dockerfile
     image: fastmile-api:latest
     container_name: fastmile-api
     ports:

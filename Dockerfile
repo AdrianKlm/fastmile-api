@@ -5,10 +5,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
-COPY src ./src
+COPY fastmile-api/pyproject.toml fastmile-api/README.md ./fastmile-api/
+COPY fastmile-api/src ./fastmile-api/src
+COPY fastmile-parser ./fastmile-parser
 
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir -e ./fastmile-parser -e ./fastmile-api
 
 EXPOSE 8000
 

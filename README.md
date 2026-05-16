@@ -16,12 +16,22 @@ API and metrics exporter for Nokia FastMile / 4G05 routers.
 This project is built for vibe coding with strong docs, clean contracts, and low-friction iteration.
 The goal is to keep the codebase easy to read, easy to extend, and easy to automate.
 
+## Workspace Setup
+
+From `fastmile-api/`:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ../fastmile-parser
+.venv/bin/pip install -e .
+```
+
 ## Docker
 
 Build:
 
 ```bash
-docker build -t fastmile-api .
+docker build -t fastmile-api -f fastmile-api/Dockerfile ..
 ```
 
 Run:
@@ -31,6 +41,12 @@ docker run --rm -p 8000:8000 \
   -e FASTMILE_ROUTER_HOST=192.168.0.1 \
   -e FASTMILE_CACHE_TTL_SECONDS=15 \
   fastmile-api
+```
+
+Or from `fastmile-api/`:
+
+```bash
+docker compose up --build
 ```
 
 ## Full JSON Shape

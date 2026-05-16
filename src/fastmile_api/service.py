@@ -5,8 +5,8 @@ from dataclasses import asdict
 from fastmile_api.cache import SnapshotCache
 from fastmile_api.config import Settings
 from fastmile_api.metrics import render_metrics
-from fastmile_api.router_client import RouterClient
-from fastmile_api.scraper import parse_snapshot
+from fastmile_parser.router_client import RouterClient
+from fastmile_parser.scraper import parse_snapshot
 
 
 class FastMileService:

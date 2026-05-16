@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastmile_api.models import Snapshot
+from fastmile_parser.models import Snapshot
 
 
 def _escape_label_value(value: str) -> str:
