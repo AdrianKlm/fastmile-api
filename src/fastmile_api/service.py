@@ -29,7 +29,14 @@ class FastMileService:
         return parse_snapshot(html)
 
     def health(self) -> dict:
-        return {"status": "ok", "cache": {"fresh": self.cache._entry is not None}}
+        return {
+            "status": "ok",
+            "cache": {
+                "fresh": self.cache.is_fresh(),
+                "stale": self.cache.is_stale(),
+                "has_entry": self.cache.has_entry(),
+            },
+        }
 
     def current_payload(self) -> dict:
         return asdict(self.get_current_snapshot())

@@ -22,8 +22,7 @@ From `fastmile-api/`:
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -e ../fastmile-parser
-.venv/bin/pip install -e .
+.venv/bin/pip install -e .[dev]
 ```
 
 ## Docker
@@ -37,7 +36,7 @@ docker build -t fastmile-api -f fastmile-api/Dockerfile ..
 Run:
 
 ```bash
-docker run --rm -p 8000:8000 \
+docker run --rm -p 8002:8000 \
   -e FASTMILE_ROUTER_HOST=192.168.0.1 \
   -e FASTMILE_CACHE_TTL_SECONDS=15 \
   fastmile-api

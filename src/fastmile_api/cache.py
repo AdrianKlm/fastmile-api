@@ -28,6 +28,20 @@ class SnapshotCache(Generic[T]):
     def _is_fresh(self, entry: CacheEntry[T]) -> bool:
         return (monotonic() - entry.fetched_at) <= self.ttl_seconds
 
+    def _is_within_stale_window(self, entry: CacheEntry[T]) -> bool:
+        return (monotonic() - entry.fetched_at) <= (self.ttl_seconds + self.stale_seconds)
+
+    def has_entry(self) -> bool:
+        return self._entry is not None
+
+    def is_fresh(self) -> bool:
+        entry = self._entry
+        return entry is not None and self._is_fresh(entry)
+
+    def is_stale(self) -> bool:
+        entry = self._entry
+        return entry is not None and not self._is_fresh(entry) and self._is_within_stale_window(entry)
+
     def get_or_refresh(self, loader: Callable[[], T]) -> T:
         entry = self._entry
         if entry is not None and self._is_fresh(entry):
@@ -41,7 +55,7 @@ class SnapshotCache(Generic[T]):
             try:
                 snapshot = loader()
             except Exception:
-                if entry is not None and (monotonic() - entry.fetched_at) <= (self.ttl_seconds + self.stale_seconds):
+                if entry is not None and self._is_within_stale_window(entry):
                     return entry.snapshot
                 raise
 

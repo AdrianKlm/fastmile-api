@@ -7,9 +7,8 @@ WORKDIR /app
 
 COPY fastmile-api/pyproject.toml fastmile-api/README.md ./fastmile-api/
 COPY fastmile-api/src ./fastmile-api/src
-COPY fastmile-parser ./fastmile-parser
 
-RUN pip install --no-cache-dir -e ./fastmile-parser -e ./fastmile-api
+RUN pip install --no-cache-dir -e ./fastmile-api
 
 EXPOSE 8000
 
