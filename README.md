@@ -2,6 +2,8 @@
 
 API and metrics exporter for Nokia FastMile / 4G05 routers.
 
+It uses [`fastmile-parser`](https://pypi.org/project/fastmile-parser/) from PyPI to fetch and parse router snapshots.
+
 ## MVP
 
 - poll `https://<router>/status.php`
@@ -15,6 +17,12 @@ API and metrics exporter for Nokia FastMile / 4G05 routers.
 
 This project is built for vibe coding with strong docs, clean contracts, and low-friction iteration.
 The goal is to keep the codebase easy to read, easy to extend, and easy to automate.
+
+## Dependencies
+
+- `fastmile-parser` for router snapshot fetching and parsing
+- `fastapi` for the HTTP API
+- `prometheus-client` for metrics
 
 ## Workspace Setup
 
