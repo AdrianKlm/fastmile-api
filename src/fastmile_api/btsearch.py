@@ -45,7 +45,7 @@ class BTSearchClient:
     def __init__(self, base_url: str, timeout_seconds: int = 10) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
-        self._band_id_by_value: dict[int, int] | None = None
+        self._bands_by_value: dict[int, list[dict[str, Any]]] | None = None
 
     def search_lte_station_matches(self, enbid: int, cell_id: int, band: int | None = None) -> list[dict[str, Any]]:
         # BTSearch search is broad; exact matching happens after the response comes back.
@@ -130,23 +130,33 @@ class BTSearchClient:
         band_value = self._btsearch_band_value(router_band)
         if band_value is None:
             return None
-        return self._load_band_id_by_value().get(band_value)
+        bands = self._load_bands_by_value().get(band_value, [])
+        if not bands:
+            return None
 
-    def _load_band_id_by_value(self) -> dict[int, int]:
-        if self._band_id_by_value is None:
+        for band in bands:
+            if band.get("duplex") == "FDD" or str(band.get("name", "")).endswith("(FDD)"):
+                band_id = band.get("id")
+                if isinstance(band_id, int):
+                    return band_id
+
+        band_id = bands[0].get("id")
+        return band_id if isinstance(band_id, int) else None
+
+    def _load_bands_by_value(self) -> dict[int, list[dict[str, Any]]]:
+        if self._bands_by_value is None:
             response = requests.get(f"{self.base_url}/bands", timeout=self.timeout_seconds)
             response.raise_for_status()
             payload = response.json()
             data = payload.get("data", [])
             if not isinstance(data, list):
                 raise ValueError("invalid BTSearch bands response")
-            band_ids: dict[int, int] = {}
+            bands_by_value: dict[int, list[dict[str, Any]]] = {}
             for band in data:
                 if not isinstance(band, dict):
                     continue
                 value = band.get("value")
-                band_id = band.get("id")
-                if isinstance(value, int) and isinstance(band_id, int):
-                    band_ids[value] = band_id
-            self._band_id_by_value = band_ids
-        return self._band_id_by_value
+                if isinstance(value, int):
+                    bands_by_value.setdefault(value, []).append(band)
+            self._bands_by_value = bands_by_value
+        return self._bands_by_value

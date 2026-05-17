@@ -22,7 +22,7 @@ def test_radio_enrichment_payload_uses_router_lte_identifiers(monkeypatch):
         return [{"station_id": "BTS-1", "cells": [{"enbid": enbid, "clid": cell_id, "band_id": 4}]}]
 
     monkeypatch.setattr(service.btsearch, "search_lte_station_matches", fake_search)
-    service.btsearch._band_id_by_value = {800: 4}
+    service.btsearch._bands_by_value = {800: [{"id": 4, "duplex": "FDD", "name": "LTE 800 (FDD)"}]}
 
     payload = service.radio_enrichment_payload()
 

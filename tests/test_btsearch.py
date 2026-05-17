@@ -35,5 +35,5 @@ def test_btsearch_maps_router_band_to_btsearch_band_value():
     client = BTSearchClient("https://btsearch.pl/api/v1")
 
     assert client._btsearch_band_value(20) == 800
-    client._band_id_by_value = {800: 4}
+    client._bands_by_value = {800: [{"id": 4, "duplex": "FDD", "name": "LTE 800 (FDD)"}]}
     assert client._btsearch_band_id(20) == 4
