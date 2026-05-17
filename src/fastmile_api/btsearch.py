@@ -48,7 +48,7 @@ class BTSearchClient:
 
     def search_lte_station_matches(self, enbid: int, cell_id: int, band: int | None = None) -> list[dict[str, Any]]:
         # BTSearch search is broad; exact matching happens after the response comes back.
-        matches = self._search(f"lteCells: enbid: {enbid}")
+        matches = self._search(f"enbid: {enbid}")
         return self._filter_exact_matches(matches, enbid, cell_id, self._btsearch_band_value(band))
 
     def _build_queries(self, enbid: int, cell_id: int, band: int | None) -> list[str]:
