@@ -80,6 +80,7 @@ class FastMileService:
         snapshot = self.get_current_snapshot()
         band = snapshot.lte.ca.dl_bands[0] if snapshot.lte.ca.dl_bands else None
         btsearch_band = self.btsearch._btsearch_band_value(band)
+        btsearch_band_id = self.btsearch._btsearch_band_id(band)
         try:
             matches = self.btsearch.search_lte_station_matches(snapshot.lte.ca.enb, snapshot.lte.ca.cid, band)
         except (RequestException, OSError, ValueError) as exc:
@@ -91,6 +92,7 @@ class FastMileService:
                 "cell_id": snapshot.lte.ca.cid,
                 "band": band,
                 "band_value": btsearch_band,
+                "band_id": btsearch_band_id,
             },
             "matches": matches,
             "match_count": len(matches),

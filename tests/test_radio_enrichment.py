@@ -19,13 +19,14 @@ def test_radio_enrichment_payload_uses_router_lte_identifiers(monkeypatch):
 
     def fake_search(enbid, cell_id, band):
         calls["args"] = (enbid, cell_id, band)
-        return [{"station_id": "BTS-1", "cells": [{"enbid": enbid, "clid": cell_id, "band": {"value": band}}]}]
+        return [{"station_id": "BTS-1", "cells": [{"enbid": enbid, "clid": cell_id, "band_id": 4}]}]
 
     monkeypatch.setattr(service.btsearch, "search_lte_station_matches", fake_search)
+    service.btsearch._band_id_by_value = {800: 4}
 
     payload = service.radio_enrichment_payload()
 
     assert calls["args"] == (291067, 13, 20)
-    assert payload["source"] == {"enbid": 291067, "cell_id": 13, "band": 20, "band_value": 800}
+    assert payload["source"] == {"enbid": 291067, "cell_id": 13, "band": 20, "band_value": 800, "band_id": 4}
     assert payload["match_count"] == 1
-    assert payload["matches"] == [{"station_id": "BTS-1", "cells": [{"enbid": 291067, "clid": 13, "band": {"value": 20}}]}]
+    assert payload["matches"] == [{"station_id": "BTS-1", "cells": [{"enbid": 291067, "clid": 13, "band_id": 4}]}]

@@ -45,11 +45,12 @@ class BTSearchClient:
     def __init__(self, base_url: str, timeout_seconds: int = 10) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
+        self._band_id_by_value: dict[int, int] | None = None
 
     def search_lte_station_matches(self, enbid: int, cell_id: int, band: int | None = None) -> list[dict[str, Any]]:
         # BTSearch search is broad; exact matching happens after the response comes back.
         matches = self._search(f"enbid: {enbid}")
-        return self._filter_exact_matches(matches, enbid, cell_id, self._btsearch_band_value(band))
+        return self._filter_exact_matches(matches, enbid, cell_id, self._btsearch_band_id(band))
 
     def _build_queries(self, enbid: int, cell_id: int, band: int | None) -> list[str]:
         queries: list[str] = [f"lteCells: enbid: {enbid}"]
@@ -86,7 +87,7 @@ class BTSearchClient:
         stations: list[dict[str, Any]],
         enbid: int,
         cell_id: int,
-        band: int | None,
+        band_id: int | None,
     ) -> list[dict[str, Any]]:
         matches: list[dict[str, Any]] = []
 
@@ -103,7 +104,7 @@ class BTSearchClient:
                 cell_clid = cell.get("clid")
                 if cell_enbid != enbid or cell_clid != cell_id:
                     continue
-                if band is not None and self._cell_band(cell) not in {None, band}:
+                if band_id is not None and self._cell_band_id(cell) not in {None, band_id}:
                     continue
                 exact_cells.append(cell)
 
@@ -114,15 +115,38 @@ class BTSearchClient:
 
         return matches
 
-    def _cell_band(self, cell: dict[str, Any]) -> int | None:
-        band = cell.get("band")
-        if isinstance(band, dict):
-            value = band.get("value")
-            if isinstance(value, int):
-                return value
+    def _cell_band_id(self, cell: dict[str, Any]) -> int | None:
+        band_id = cell.get("band_id")
+        if isinstance(band_id, int):
+            return band_id
         return None
 
     def _btsearch_band_value(self, router_band: int | None) -> int | None:
         if router_band is None:
             return None
         return LTE_BAND_VALUE_BY_NUMBER.get(router_band)
+
+    def _btsearch_band_id(self, router_band: int | None) -> int | None:
+        band_value = self._btsearch_band_value(router_band)
+        if band_value is None:
+            return None
+        return self._load_band_id_by_value().get(band_value)
+
+    def _load_band_id_by_value(self) -> dict[int, int]:
+        if self._band_id_by_value is None:
+            response = requests.get(f"{self.base_url}/bands", timeout=self.timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
+            data = payload.get("data", [])
+            if not isinstance(data, list):
+                raise ValueError("invalid BTSearch bands response")
+            band_ids: dict[int, int] = {}
+            for band in data:
+                if not isinstance(band, dict):
+                    continue
+                value = band.get("value")
+                band_id = band.get("id")
+                if isinstance(value, int) and isinstance(band_id, int):
+                    band_ids[value] = band_id
+            self._band_id_by_value = band_ids
+        return self._band_id_by_value
