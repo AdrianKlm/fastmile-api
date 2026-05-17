@@ -12,26 +12,14 @@ class BTSearchClient:
         self.timeout_seconds = timeout_seconds
 
     def search_lte_station_matches(self, enbid: int, cell_id: int, band: int | None = None) -> list[dict[str, Any]]:
-        for query in self._build_queries(enbid, cell_id, band):
-            matches = self._search(query)
-            if matches:
-                return matches
-        return []
+        # BTSearch search is broad; exact matching happens after the response comes back.
+        matches = self._search(f"lteCells: enbid: {enbid}")
+        return self._filter_exact_matches(matches, enbid, cell_id, band)
 
     def _build_queries(self, enbid: int, cell_id: int, band: int | None) -> list[str]:
-        queries: list[str] = []
-
-        strict_parts = [f"lteCells: enbid: {enbid}", f"lteCells: lte_clid: {cell_id}"]
-        if band is not None:
-            strict_parts.append(f"cells: band: {band}")
-        queries.append(" ".join(strict_parts))
-
+        queries: list[str] = [f"lteCells: enbid: {enbid}"]
         if band is not None:
             queries.append(f"lteCells: enbid: {enbid} cells: band: {band}")
-
-        queries.append(f"lteCells: enbid: {enbid}")
-        queries.append(" ".join(str(value) for value in (enbid, cell_id, band) if value is not None))
-
         return self._dedupe(queries)
 
     def _dedupe(self, queries: Iterable[str]) -> list[str]:
@@ -57,3 +45,45 @@ class BTSearchClient:
         if not isinstance(data, list):
             raise ValueError("invalid BTSearch response")
         return data
+
+    def _filter_exact_matches(
+        self,
+        stations: list[dict[str, Any]],
+        enbid: int,
+        cell_id: int,
+        band: int | None,
+    ) -> list[dict[str, Any]]:
+        matches: list[dict[str, Any]] = []
+
+        for station in stations:
+            cells = station.get("cells")
+            if not isinstance(cells, list):
+                continue
+
+            exact_cells = []
+            for cell in cells:
+                if not isinstance(cell, dict):
+                    continue
+                cell_enbid = cell.get("enbid")
+                cell_clid = cell.get("clid")
+                if cell_enbid != enbid or cell_clid != cell_id:
+                    continue
+                if band is not None and self._cell_band(cell) not in {None, band}:
+                    continue
+                exact_cells.append(cell)
+
+            if exact_cells:
+                filtered_station = dict(station)
+                filtered_station["cells"] = exact_cells
+                matches.append(filtered_station)
+
+        return matches
+
+    def _cell_band(self, cell: dict[str, Any]) -> int | None:
+        band = cell.get("band")
+        if isinstance(band, int):
+            return band
+        band_id = cell.get("band_id")
+        if isinstance(band_id, int):
+            return band_id
+        return None
