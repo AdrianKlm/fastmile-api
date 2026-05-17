@@ -16,11 +16,11 @@ def test_btsearch_filters_exact_lte_matches():
     stations = [
         {
             "station_id": "wrong",
-            "cells": [{"enbid": 291067, "clid": 99, "band_id": 4}],
+            "cells": [{"band_id": 4, "details": {"enbid": 291067, "clid": 99}}],
         },
         {
             "station_id": "right",
-            "cells": [{"enbid": 291067, "clid": 13, "band_id": 4}],
+            "cells": [{"band_id": 4, "details": {"enbid": 291067, "clid": 13}}],
         },
     ]
 
@@ -28,7 +28,7 @@ def test_btsearch_filters_exact_lte_matches():
 
     assert len(matches) == 1
     assert matches[0]["station_id"] == "right"
-    assert matches[0]["cells"] == [{"enbid": 291067, "clid": 13, "band_id": 4}]
+    assert matches[0]["cells"] == [{"band_id": 4, "details": {"enbid": 291067, "clid": 13}}]
 
 
 def test_btsearch_maps_router_band_to_btsearch_band_value():

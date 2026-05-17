@@ -100,8 +100,11 @@ class BTSearchClient:
             for cell in cells:
                 if not isinstance(cell, dict):
                     continue
-                cell_enbid = cell.get("enbid")
-                cell_clid = cell.get("clid")
+                details = cell.get("details")
+                if not isinstance(details, dict):
+                    continue
+                cell_enbid = details.get("enbid")
+                cell_clid = details.get("clid")
                 if cell_enbid != enbid or cell_clid != cell_id:
                     continue
                 if band_id is not None and self._cell_band_id(cell) not in {None, band_id}:
