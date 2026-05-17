@@ -81,9 +81,8 @@ class BTSearchClient:
 
     def _cell_band(self, cell: dict[str, Any]) -> int | None:
         band = cell.get("band")
-        if isinstance(band, int):
-            return band
-        band_id = cell.get("band_id")
-        if isinstance(band_id, int):
-            return band_id
+        if isinstance(band, dict):
+            value = band.get("value")
+            if isinstance(value, int):
+                return value
         return None
