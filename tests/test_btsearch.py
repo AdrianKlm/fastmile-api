@@ -29,3 +29,9 @@ def test_btsearch_filters_exact_lte_matches():
     assert len(matches) == 1
     assert matches[0]["station_id"] == "right"
     assert matches[0]["cells"] == [{"enbid": 291067, "clid": 13, "band": {"value": 20}}]
+
+
+def test_btsearch_maps_router_band_to_btsearch_band_value():
+    client = BTSearchClient("https://btsearch.pl/api/v1")
+
+    assert client._btsearch_band_value(20) == 800

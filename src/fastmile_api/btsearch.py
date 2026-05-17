@@ -6,6 +6,41 @@ from typing import Any
 import requests
 
 
+LTE_BAND_VALUE_BY_NUMBER: dict[int, int] = {
+    1: 2100,
+    2: 1900,
+    3: 1800,
+    4: 1700,
+    5: 850,
+    7: 2600,
+    8: 900,
+    12: 700,
+    13: 700,
+    14: 700,
+    17: 700,
+    18: 850,
+    19: 850,
+    20: 800,
+    25: 1900,
+    26: 850,
+    28: 700,
+    29: 700,
+    30: 2300,
+    31: 450,
+    32: 1500,
+    38: 2600,
+    39: 1900,
+    40: 2300,
+    41: 2500,
+    42: 3500,
+    43: 3700,
+    46: 5200,
+    48: 3500,
+    66: 1700,
+    71: 600,
+}
+
+
 class BTSearchClient:
     def __init__(self, base_url: str, timeout_seconds: int = 10) -> None:
         self.base_url = base_url.rstrip("/")
@@ -14,7 +49,7 @@ class BTSearchClient:
     def search_lte_station_matches(self, enbid: int, cell_id: int, band: int | None = None) -> list[dict[str, Any]]:
         # BTSearch search is broad; exact matching happens after the response comes back.
         matches = self._search(f"lteCells: enbid: {enbid}")
-        return self._filter_exact_matches(matches, enbid, cell_id, band)
+        return self._filter_exact_matches(matches, enbid, cell_id, self._btsearch_band_value(band))
 
     def _build_queries(self, enbid: int, cell_id: int, band: int | None) -> list[str]:
         queries: list[str] = [f"lteCells: enbid: {enbid}"]
@@ -86,3 +121,8 @@ class BTSearchClient:
             if isinstance(value, int):
                 return value
         return None
+
+    def _btsearch_band_value(self, router_band: int | None) -> int | None:
+        if router_band is None:
+            return None
+        return LTE_BAND_VALUE_BY_NUMBER.get(router_band)
