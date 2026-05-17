@@ -10,3 +10,5 @@ class Settings(BaseSettings):
     router_timeout_seconds: int = 30
     cache_ttl_seconds: int = 15
     cache_stale_seconds: int = 5
+    btsearch_base_url: str = "https://btsearch.pl/api/v1"
+    btsearch_timeout_seconds: int = 10

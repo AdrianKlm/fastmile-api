@@ -10,6 +10,7 @@ It uses [`fastmile-parser`](https://pypi.org/project/fastmile-parser/) from PyPI
 - cache one raw snapshot in memory
 - expose full JSON snapshot (`/api/v1/current`)
 - expose flat JSON for Home Assistant (`/api/v1/ha`)
+- expose optional BTSearch radio enrichment (`/api/v1/radio-enrichment`)
 - expose Prometheus metrics for Grafana
 - ship as a small Dockerized service
 

@@ -4,6 +4,7 @@ from dataclasses import asdict
 
 from fastapi import HTTPException
 
+from fastmile_api.btsearch import BTSearchClient
 from fastmile_api.cache import SnapshotCache
 from fastmile_api.config import Settings
 from fastmile_api.metrics import render_metrics
@@ -17,6 +18,7 @@ class FastMileService:
         self.settings = settings
         self.client = RouterClient(settings.router_host, timeout=settings.router_timeout_seconds)
         self.cache = SnapshotCache(ttl_seconds=settings.cache_ttl_seconds, stale_seconds=settings.cache_stale_seconds)
+        self.btsearch = BTSearchClient(settings.btsearch_base_url, timeout_seconds=settings.btsearch_timeout_seconds)
 
     def get_current_snapshot(self):
         return self.cache.get_or_refresh(self._load_snapshot)
@@ -72,6 +74,24 @@ class FastMileService:
             "apn_name": apn.name if apn is not None else None,
             "apn_ipv4": apn.ipv4 if apn is not None else None,
             "apn_ipv6": apn.ipv6 if apn is not None else None,
+        }
+
+    def radio_enrichment_payload(self) -> dict:
+        snapshot = self.get_current_snapshot()
+        band = snapshot.lte.ca.dl_bands[0] if snapshot.lte.ca.dl_bands else None
+        try:
+            matches = self.btsearch.search_lte_station_matches(snapshot.lte.ca.enb, snapshot.lte.ca.cid, band)
+        except (RequestException, OSError, ValueError) as exc:
+            raise HTTPException(status_code=502, detail="btsearch unavailable") from exc
+
+        return {
+            "source": {
+                "enbid": snapshot.lte.ca.enb,
+                "cell_id": snapshot.lte.ca.cid,
+                "band": band,
+            },
+            "matches": matches,
+            "match_count": len(matches),
         }
 
     def render_metrics(self) -> str:

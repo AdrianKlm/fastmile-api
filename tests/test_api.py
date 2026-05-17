@@ -25,6 +25,13 @@ class FakeService:
             "online": True,
         }
 
+    def radio_enrichment_payload(self):
+        return {
+            "source": {"enbid": 291067, "cell_id": 13, "band": 20},
+            "matches": [{"station_id": "BTS-1"}],
+            "match_count": 1,
+        }
+
     def render_metrics(self):
         return "fastmile_router_up 1\nfastmile_router_signal_rsrp -106\n"
 
@@ -80,3 +87,19 @@ def test_ha_endpoint_returns_flat_json():
     assert body["signal_rsrp"] == -106
     assert body["online"] is True
     assert "device" not in body
+
+
+def test_radio_enrichment_endpoint_returns_matches():
+    from types import SimpleNamespace
+
+    snapshot = SimpleNamespace(device=SimpleNamespace(model="ODU"), apns=[])
+    app.dependency_overrides.clear()
+    app.dependency_overrides[get_service] = lambda: FakeService(snapshot)
+    client = TestClient(app)
+
+    response = client.get("/api/v1/radio-enrichment")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"]["enbid"] == 291067
+    assert body["match_count"] == 1
+    assert body["matches"][0]["station_id"] == "BTS-1"

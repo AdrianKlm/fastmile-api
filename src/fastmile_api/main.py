@@ -44,6 +44,11 @@ def home_assistant(service: FastMileService = Depends(get_service)):
     return service.ha_payload()
 
 
+@app.get("/api/v1/radio-enrichment")
+def radio_enrichment(service: FastMileService = Depends(get_service)):
+    return service.radio_enrichment_payload()
+
+
 @app.get("/metrics", response_class=PlainTextResponse)
 def metrics(service: FastMileService = Depends(get_service)):
     return service.render_metrics()
